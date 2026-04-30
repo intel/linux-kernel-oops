@@ -1,0 +1,15 @@
+[ 9012.345678] kernel BUG at mm/slub.c:1234!
+[ 9012.345679] invalid opcode: 0000 [#1] SMP PTI
+[ 9012.345680] CPU: 0 PID: 7890 Comm: kworker/u8:1 Tainted: G        W         5.15.0-generic #1
+[ 9012.345681] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+[ 9012.345682] RIP: 0010:kfree+0x123/0x150
+[ 9012.345683] Code: 00 00 00 00 00 00 00 00 <0f> 0b e9 12 34 56 78
+[ 9012.345684] RSP: 0018:ffffc90000789e40 EFLAGS: 00010246
+[ 9012.345685] RAX: ffff888100789000 RBX: ffff888100789000 RCX: 0000000000000000
+[ 9012.345686] Call Trace:
+[ 9012.345687]  <TASK>
+[ 9012.345688]  process_one_work+0x123/0x3a0
+[ 9012.345689]  worker_thread+0x123/0x3a0
+[ 9012.345690]  kthread+0x123/0x150
+[ 9012.345691]  ret_from_fork+0x22/0x30
+[ 9012.345692]  </TASK>

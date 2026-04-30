@@ -1,0 +1,30 @@
+[ 5678.123456] ------------[ cut here ]------------
+[ 5678.123457] WARNING: CPU: 3 PID: 4567 at drivers/net/ethernet/intel/e1000/e1000_main.c:1234 e1000_open+0x123/0x456 [e1000]
+[ 5678.123458] Modules linked in: e1000(O) ...
+[ 5678.123459] CPU: 3 PID: 4567 Comm: ifconfig Tainted: G        W         5.15.0-generic #1
+[ 5678.123460] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+[ 5678.123461] RIP: 0010:e1000_open+0x123/0x456 [e1000]
+[ 5678.123462] Code: 00 00 00 00 00 00 00 00 <0f> 0b e9 12 34 56 78
+[ 5678.123463] RSP: 0018:ffffc90000456e40 EFLAGS: 00010246
+[ 5678.123464] RAX: 0000000000000000 RBX: ffff888100456000 RCX: 0000000000000000
+[ 5678.123465] RDX: 0000000000000001 RSI: ffff888100456000 RDI: ffff888100456000
+[ 5678.123466] Call Trace:
+[ 5678.123467]  <TASK>
+[ 5678.123468]  __dev_open+0x123/0x1a0
+[ 5678.123469]  __dev_change_flags+0x123/0x1a0
+[ 5678.123470]  dev_change_flags+0x23/0x60
+[ 5678.123471]  do_setlink+0x123/0x456
+[ 5678.123472]  rtnl_newlink+0x123/0x456
+[ 5678.123473]  rtnetlink_rcv_msg+0x123/0x456
+[ 5678.123474]  netlink_rcv_skb+0x50/0x100
+[ 5678.123475]  rtnetlink_rcv+0x15/0x20
+[ 5678.123476]  netlink_unicast+0x123/0x1a0
+[ 5678.123477]  netlink_sendmsg+0x123/0x456
+[ 5678.123478]  sock_sendmsg+0x30/0x40
+[ 5678.123479]  ____sys_sendmsg+0x123/0x1a0
+[ 5678.123480]  ___sys_sendmsg+0x80/0xc0
+[ 5678.123481]  __x64_sys_sendmsg+0x40/0x80
+[ 5678.123482]  do_syscall_64+0x3b/0x90
+[ 5678.123483]  entry_SYSCALL_64_after_hwframe+0x44/0xae
+[ 5678.123484]  </TASK>
+[ 5678.123485] ---[ end trace 1234567890abcdef ]---

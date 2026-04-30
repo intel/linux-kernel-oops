@@ -1,0 +1,157 @@
+https://lore.kernel.org/lkml/aYN3JC_Kdgw5G2Ik@861G6M3/
+
+linux-kernel.vger.kernel.org archive mirror
+ help / color / mirror / Atom feed
+From: Chris Arges <carges@cloudflare.com>
+To: linux-kernel@vger.kernel.org
+Cc: willy@infradead.org, akpm@linux-foundation.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	kernel-team@cloudflare.com
+Subject: kernel crash at mm/filemap.c on v6.18.7
+Date: Wed, 4 Feb 2026 10:43:16 -0600	[thread overview]
+Message-ID: <aYN3JC_Kdgw5G2Ik@861G6M3> (raw)
+
+We got the following VM_BUG_ON_FOLIO assertion failure on a v6.18.7 kernel
+at mm/filemap.c:3519 in the filemap_fault() function. The crash occurred
+during a page fault while journalctl (pid 3666669) was reading a file on
+an xfs filesystem. System was under memory pressure.
+This seems like some sort of XFS/page_cache race.
+
+Backtrace:
+```
+page: refcount:2 mapcount:0 mapping:000000006db8c9ab index:0x7652 pfn:0x2af2802
+memcg:ff25824893476540
+aops:xfs_address_space_operations ino:c0000c0 dentry name(?):"system@951e885c16c946debbe32b18d75328c2-000000000cc0fd3c-00064"
+flags: 0x2affff80000012d(locked|referenced|uptodate|lru|active|node=10|zone=2|lastcpupid=0x1ffff)
+raw: 02affff80000012d ff8c4b17ebca0008 ff258260eda3d3b0 ff25825437d792a8
+raw: 0000000000007652 0000000000000000 00000002ffffffff ff25824893476540
+page dumped because: VM_BUG_ON_FOLIO(!folio_contains(folio, index))
+------------[ cut here ]------------
+kernel BUG at mm/filemap.c:3519!
+Oops: invalid opcode: 0000 [#1] SMP NOPTI
+CPU: 7 UID: 0 PID: 3666669 Comm: journalctl Kdump: loaded Tainted: G        W  O        6.18.7-cloudflare-2026.1.15 #1 PREEMPT(voluntary) 
+Tainted: [W]=WARN, [O]=OOT_MODULE
+Hardware name: Lenovo HR355M-V3-G12/HR355M_V3_HPM, BIOS HR355M_V3.G.031 02/17/2025
+RIP: 0010:filemap_fault+0xa61/0x1410
+Code: 48 8b 4c 24 10 4c 8b 44 24 08 48 85 c9 0f 84 82 fa ff ff 49 89 cd e9 bc f9 ff ff 48 c7 c6 20 44 d0 96 4c 89 c7 e8 3f 1c 04 00 <0f> 0b 48 8d 7b 18 4c 89 44 24 08 4c 89 1c 24 e8 0b 97 e3 ff 4c 8b
+RSP: 0018:ff4ac5c342ccfcb0 EFLAGS: 00010246
+RAX: 0000000000000043 RBX: ff25825437d792a8 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: ff2582406fb9c4c0
+RBP: 0000000000007653 R08: 0000000000000000 R09: ff4ac5c342ccfb48
+R10: ff2582986cc3ffa8 R11: 0000000000000003 R12: 0000000000000000
+R13: ff258239e9fbf740 R14: ff25825437d79138 R15: ff4ac5c342ccfde8
+FS:  00007efd812b2980(0000) GS:ff258240d7be4000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007efd7ec53a08 CR3: 00000021f5891005 CR4: 0000000000771ef0
+PKRU: 55555554
+Call Trace:
+ <TASK>
+ __do_fault+0x31/0xd0
+ do_fault+0x2e6/0x710
+ __handle_mm_fault+0x7b3/0xe50
+ ? srso_alias_return_thunk+0x5/0xfbef5
+ ? do_mmap+0x48a/0x670
+ handle_mm_fault+0xaa/0x2a0
+ do_user_addr_fault+0x208/0x660
+ exc_page_fault+0x77/0x170
+ asm_exc_page_fault+0x26/0x30
+RIP: 0033:0x7efd8187c3dc
+Code: e2 ff 66 66 2e 0f 1f 84 00 00 00 00 00 90 41 55 41 54 55 53 48 83 ec 18 48 85 ff 0f 84 bd 01 00 00 48 85 f6 0f 84 d4 01 00 00 <48> 8b 5e 08 48 89 cd 48 85 db 74 60 48 83 fb 0f 0f 86 86 00 00 00
+RSP: 002b:00007ffd3e56e120 EFLAGS: 00010206
+RAX: 0000000000000000 RBX: 0000000007653a00 RCX: 0000000007653a00
+RDX: 0000000000000003 RSI: 00007efd7ec53a00 RDI: 00005653db23c150
+RBP: 00005653db23c150 R08: 0000000000000010 R09: 00005653db23c188
+R10: 0000000000000001 R11: 00007efd8187d3d0 R12: 0000000000000003
+R13: 00007ffd3e56e1b0 R14: 0000000000000001 R15: 00007efd7ec53a00
+ </TASK>
+```
+
+Some crash analysis showing the index variable requested and the mapping's
+inode number matching the file in kmsg.
+```
+crash> files 3666669 | grep 0fd3c
+ 28 ff258239e9fbf740 ff258241714d7380 ff25825437d79138 REG  /state/var/log/journal/a8313fd61d2511efaf3fb49691bc0851/system@951e885c16c946debbe32b18d75328c2-000000000cc0fd3c-000649d02a75bf77.journal
+crash> struct inode.i_ino -x ff25825437d79138
+  i_ino = 0xc0000c0,
+crash> p mapping
+$2 = (struct address_space *) 0xff25825437d792a8
+crash> p -x mapping.host.i_ino
+$5 = 0xc0000c0
+crash> p -x index
+$10 = 0x7653
+```
+
+Frame and dis:
+```
+  #7 [ff4ac5c342ccfc00] asm_exc_invalid_op at ffffffff9460123a
+    [exception RIP: filemap_fault+2657]
+    RIP: ffffffff94b3ace1  RSP: ff4ac5c342ccfcb0  RFLAGS: 00010246
+    RAX: 0000000000000043  RBX: ff25825437d792a8  RCX: 0000000000000000
+    RDX: 0000000000000000  RSI: 0000000000000001  RDI: ff2582406fb9c4c0
+    RBP: 0000000000007653   R8: 0000000000000000   R9: ff4ac5c342ccfb48
+    R10: ff2582986cc3ffa8  R11: 0000000000000003  R12: 0000000000000000
+    R13: ff258239e9fbf740  R14: ff25825437d79138  R15: ff4ac5c342ccfde8
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+
+crash> dis -d filemap_fault+2660 16
+0xffffffff94b3ace4 <filemap_fault+2660>:        lea    0x18(%rbx),%edi
+0xffffffff94b3ace7 <filemap_fault+2663>:        mov    %r8,0x8(%rsp)
+0xffffffff94b3acec <filemap_fault+2668>:        mov    %r11,(%rsp)
+0xffffffff94b3acf0 <filemap_fault+2672>:        call   0xffffffff94974400 <up_read>
+0xffffffff94b3acf5 <filemap_fault+2677>:        mov    0x8(%rsp),%r8
+0xffffffff94b3acfa <filemap_fault+2682>:        mov    (%rsp),%r11
+0xffffffff94b3acfe <filemap_fault+2686>:        jmp    0xffffffff94b3a5bf <filemap_fault+831>
+0xffffffff94b3ad03 <filemap_fault+2691>:        mov    $0xffffffff96cd7ce8,%rsi
+0xffffffff94b3ad0a <filemap_fault+2698>:        mov    %r8,%rdi
+0xffffffff94b3ad0d <filemap_fault+2701>:        call   0xffffffff94b7c920 <dump_page>
+0xffffffff94b3ad12 <filemap_fault+2706>:        ud2
+```
+
+Seems like rdi should contain folio pointer. However the mapping looks to
+be NULL.
+
+```
+crash> struct folio.mapping 0xff2582406fb9c4c0
+      mapping = 0x0,
+```
+
+Happy to run experiments, tests, and get more data. So far I've seen this about
+6 times on various machines (both arm64 and aarch64).
+
+--chris
+                 reply	other threads:[~2026-02-04 16:43 UTC|newest]
+
+Thread overview: [no followups] expand[flat|nested]  mbox.gz  Atom feed
+Reply instructions:
+
+You may reply publicly to this message via plain-text email
+using any one of the following methods:
+
+* Save the following mbox file, import it into your mail client,
+  and reply-to-all from there: mbox
+
+  Avoid top-posting and favor interleaved quoting:
+  https://en.wikipedia.org/wiki/Posting_style#Interleaved_style
+
+* Reply using the --to, --cc, and --in-reply-to
+  switches of git-send-email(1):
+
+  git send-email \
+    --in-reply-to=aYN3JC_Kdgw5G2Ik@861G6M3 \
+    --to=carges@cloudflare.com \
+    --cc=akpm@linux-foundation.org \
+    --cc=kernel-team@cloudflare.com \
+    --cc=linux-fsdevel@vger.kernel.org \
+    --cc=linux-kernel@vger.kernel.org \
+    --cc=linux-mm@kvack.org \
+    --cc=willy@infradead.org \
+    /path/to/YOUR_REPLY
+
+  https://kernel.org/pub/software/scm/git/docs/git-send-email.html
+
+* If your mail client supports setting the In-Reply-To header
+  via mailto: links, try the mailto: link
+Be sure your reply has a Subject: header at the top and a blank line before the message body.
+This is a public inbox, see mirroring instructions
+for how to clone and mirror all data and code used for this inbox;
+as well as URLs for NNTP newsgroup(s).

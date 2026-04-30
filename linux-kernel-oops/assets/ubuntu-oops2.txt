@@ -1,0 +1,50 @@
+[ 129.723242] BUG: kernel NULL pointer dereference, address: 0000000000000018
+[ 129.723262] #PF: supervisor write access in kernel mode
+[ 129.723268] #PF: error_code(0x0002) - not-present page
+[ 129.723275] PGD 0 P4D 0
+[ 129.723280] Oops: Oops: 0002 [#1] SMP NOPTI
+[ 129.723287] CPU: 6 UID: 1000 PID: 1996 Comm: stress-ng-chatt Not tainted 7.0.0-14-generic #14-Ubuntu PREEMPT(lazy)
+[ 129.723298] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 2025.02-8+deb13u1 11/08/2025
+[ 129.723307] RIP: 0010:gfs2_trans_add_revoke+0x2b/0x50 [gfs2]
+[ 129.723336] Code: 1f 44 00 00 48 8b 56 18 48 8d 46 18 48 39 c2 75 34 55 65 48 8b 05 6d 81 2e e0 48 89 e5 53 48 8b 98 70 0e 00 00 e8 c5 e6 fd ff <f0> 80 4b 18 02 83 43 30 01 48 8b 5d f8 c9 31 c0 31 d2 31 f6 31 ff
+[ 129.723352] RSP: 0018:ffffcd7c015e3800 EFLAGS: 00010246
+[ 129.723358] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+[ 129.723365] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+[ 129.723372] RBP: ffffcd7c015e3808 R08: 0000000000000000 R09: 0000000000000000
+[ 129.723378] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+[ 129.723385] R13: ffff8d5789156d00 R14: fffff5e7c496cc00 R15: 0000000000000000
+[ 129.723392] FS: 00007f7f188bab00(0000) GS:ffff8d585af00000(0000) knlGS:0000000000000000
+[ 129.723399] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 129.723405] CR2: 0000000000000018 CR3: 0000000107b58001 CR4: 0000000000772ef0
+[ 129.723414] PKRU: 55555554
+[ 129.723418] Call Trace:
+[ 129.723422] <TASK>
+[ 129.723428] gfs2_remove_from_journal+0x6b/0x210 [gfs2]
+[ 129.723448] ? _raw_spin_unlock+0xe/0x40
+[ 129.723473] gfs2_invalidate_folio+0x103/0x240 [gfs2]
+[ 129.723491] truncate_cleanup_folio+0xb3/0xe0
+[ 129.723498] truncate_inode_pages_range+0x13c/0x560
+[ 129.723506] truncate_inode_pages+0x15/0x30
+[ 129.723511] do_gfs2_set_flags+0x13d/0x240 [gfs2]
+[ 129.723529] ? gfs2_holder_uninit+0x1f/0x40 [gfs2]
+[ 129.723546] ? gfs2_fileattr_set+0xb4/0x200 [gfs2]
+[ 129.723564] gfs2_fileattr_set+0xb4/0x200 [gfs2]
+[ 129.723581] ? fileattr_set_prepare+0x47/0x170
+[ 129.723587] ? vfs_fileattr_get+0x4b/0x70
+[ 129.723593] vfs_fileattr_set+0x101/0x1e0
+[ 129.723599] ioctl_setflags+0xa6/0xc0
+[ 129.723603] do_vfs_ioctl+0x21a/0x860
+[ 129.723609] ? hook_file_ioctl+0x10/0x20
+[ 129.723615] __x64_sys_ioctl+0x81/0x100
+[ 129.723621] x64_sys_call+0x103b/0x2390
+[ 129.723627] do_syscall_64+0x115/0x5a0
+[ 129.723634] ? ksys_write+0x71/0xf0
+[ 129.723640] ? arch_exit_to_user_mode_prepare.isra.0+0xc5/0xe0
+[ 129.723647] ? do_syscall_64+0x150/0x5a0
+[ 129.723653] ? __x64_sys_ioctl+0x81/0x100
+[ 129.723658] ? arch_exit_to_user_mode_prepare.isra.0+0xd/0xe0
+[ 129.723664] ? do_syscall_64+0x150/0x5a0
+[ 129.723826] ? do_syscall_64+0x150/0x5a0
+[ 129.723984] ? arch_exit_to_user_mode_prepare.isra.0+0xc5/0xe0
+[ 129.724134] ? do_syscall_64+0x150/0x5a0
+[ 129.724280] entry_SYSCALL_64_after_hwframe+0x76/0x7e

@@ -1,0 +1,80 @@
+Dear Maintainer,
+
+
+   * What led up to the situation?
+   
+    Booting up the computer
+    
+   * What exactly did you do (or not do) that was effective (or
+     ineffective)?
+
+     Turning on the computer led me to a QR-code image
+
+   * What was the outcome of this action?
+
+   with a kernel panic
+
+   * What outcome did you expect instead?
+
+   The computer to boot up properly
+
+
+
+-- Package-specific info:
+** Kernel log: boot messages should be attached
+
+[    6.260904] systemd[1]: Finished systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+[    6.262739] tun: Universal TUN/TAP device driver, 1.6
+[    6.265134] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled. Duplicate IMA measurements will not be recorded in the IMA log.
+[    6.265168] device-mapper: uevent: version 1.0.3
+[    6.265212] device-mapper: ioctl: 4.50.0-ioctl (2025-04-28) initialised: dm-devel@lists.linux.dev
+[    6.267053] systemd[1]: Finished systemd-modules-load.service - Load Kernel Modules.
+[    6.267731] systemd[1]: Starting systemd-sysctl.service - Apply Kernel Variables...
+[    6.271644] systemd[1]: Finished keyboard-setup.service - Set the console keyboard layout.
+[    6.274807] systemd[1]: Finished systemd-sysctl.service - Apply Kernel Variables.
+[    6.276726] EXT4-fs (nvme0n1p2): re-mounted 3a5585ec-0b6d-4b61-be72-02d72246672e r/w.
+[    6.277189] systemd[1]: Finished systemd-remount-fs.service - Remount Root and Kernel File Systems.
+[    6.277438] systemd[1]: systemd-hwdb-update.service - Rebuild Hardware Database skipped, unmet condition check ConditionNeedsUpdate=/etc
+[    6.277473] systemd[1]: systemd-pstore.service - Platform Persistent Storage Archival skipped, unmet condition check ConditionDirectoryNotEmpty=/sys/fs/pstore
+[    6.278129] systemd[1]: Starting systemd-random-seed.service - Load/Save OS Random Seed...
+[    6.278159] systemd[1]: systemd-sysusers.service - Create System Users skipped, no trigger condition checks were met.
+[    6.279214] systemd[1]: Starting systemd-journalctl.socket - Journal Log Access Socket...
+[    6.280078] systemd[1]: Starting systemd-timesyncd.service - Network Time Synchronization...
+[    6.280773] systemd[1]: Starting systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev...
+[    6.280791] systemd[1]: systemd-tpm2-setup.service - TPM SRK Setup skipped, unmet condition check ConditionSecurity=measured-uki
+[    6.280807] systemd[1]: systemd-pcrnvdone.service - TPM PCR NvPCR Initialization Separator skipped, unmet condition check ConditionSecurity=measured-uki
+[    6.281161] systemd[1]: Listening on systemd-journalctl.socket - Journal Log Access Socket.
+[    6.283447] systemd[1]: Finished systemd-random-seed.service - Load/Save OS Random Seed.
+[    6.283551] systemd[1]: Started systemd-journald.service - Journal Service.
+[    6.291783] systemd-journald[515]: Received client request to flush runtime journal.
+[    6.292275]  slab kernfs_node_cache start ffff88a251918aa0 pointer offset 120 size 136
+[    6.292283] BUG: kernel NULL pointer dereference, address: 0000000000000000
+[    6.292284] #PF: supervisor instruction fetch in kernel mode
+[    6.292285] #PF: error_code(0x0010) - not-present page
+[    6.292287] PGD 0 P4D 0 
+[    6.292289] Oops: Oops: 0010 [#1] SMP NOPTI
+[    6.292292] CPU: 9 UID: 0 PID: 0 Comm: swapper/9 Tainted: G        W 6.19.11+deb14-amd64 #1 PREEMPT(lazy)  Debian 6.19.11-1 
+[    6.292295] Tainted: [W]=WARN
+[    6.292296] Hardware name: ASUSTeK COMPUTER INC. ZenBook UX425QA_UM425QA/UX425QA, BIOS UX425QA.301 12/31/2021
+[    6.292297] RIP: 0010:0x0
+[    6.292304] Code: Unable to access opcode bytes at 0xffffffffffffffd6.
+[    6.292305] RSP: 0018:ffffcac980488ed0 EFLAGS: 00010286
+[    6.292306] RAX: 0000000000000001 RBX: 000000000000002a RCX: 0000000000000001
+[    6.292308] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88a251918b18
+[    6.292309] RBP: ffff88a200963600 R08: 0000000000000000 R09: ffffcac980488c18
+[    6.292310] R10: ffffffffa24dbf08 R11: 00000000ffffefff R12: ffff88a4fe872f80
+[    6.292311] R13: ffffcac980488f00 R14: 0000000000000029 R15: 0000000000000000
+[    6.292312] FS:  0000000000000000(0000) GS:ffff88a55b7e7000(0000) knlGS:0000000000000000
+[    6.292314] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    6.292315] CR2: ffffffffffffffd6 CR3: 00000003cea2c000 CR4: 0000000000f50ef0
+[    6.292317] PKRU: 55555554
+[    6.292318] Call Trace:
+[    6.292320]  <IRQ>
+[    6.292321]  rcu_do_batch+0x1bc/0x560
+[    6.292327]  rcu_core+0x17d/0x3a0
+[    6.292330]  handle_softirqs+0xd7/0x310
+[    6.292333]  __irq_exit_rcu+0xbc/0xe0
+[    6.292335]  sysvec_apic_timer_interrupt+0x71/0x90
+[    6.292339]  </IRQ>
+[    6.292340]  <TASK>
+[    6.292341]  asm_sysvec_apic_timer_interrupt+0x1a/0x20

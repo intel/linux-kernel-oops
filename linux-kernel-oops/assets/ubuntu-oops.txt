@@ -1,0 +1,61 @@
+[223526.988952] [      C6] BUG: unable to handle page fault for address: fffffffffffffff8
+[223526.989007] [      C6] #PF: supervisor read access in kernel mode
+[223526.989042] [      C6] #PF: error_code(0x0000) - not-present page
+[223526.989076] [      C6] PGD 373a45067 P4D 373a45067 PUD 373a47067 PMD 0
+[223526.989125] [      C6] Oops: Oops: 0000 [#1] PREEMPT SMP PTI
+[223526.989162] [      C6] CPU: 6 UID: 0 PID: 0 Comm: swapper/6 Kdump: loaded Tainted: G           OE      6.14.0-29-generic #29~24.04.1-Ubuntu
+[223526.989232] [      C6] Tainted: [O]=OOT_MODULE, [E]=UNSIGNED_MODULE
+[223526.989265] [      C6] Hardware name: MSI MS-7971/B150 PC MATE (MS-7971), BIOS C.70 05/23/2016
+[223526.989310] [      C6] RIP: 0010:complete+0x44/0x80
+[223526.989348] [      C6] Code: 04 0c 01 49 89 c4 8b 03 83 f8 ff 74 05 83 c0 01 89 03 48 8b 53 10 48 8d 43 10 48 39 c2 74 29 48 8b 5b 10 31 d2 be 03 00 00 00 <48> 8b 7b f8 e8 83 a5 fb ff 48 8b 13 48 8b 43 08 48 89 42 08 48 89
+[223526.989443] [      C6] RSP: 0018:ffffae268026cd90 EFLAGS: 00010046
+[223526.989482] [      C6] RAX: ffffae26801f71d8 RBX: 0000000000000000 RCX: 0000000000000000
+[223526.989525] [      C6] RDX: 0000000000000000 RSI: 0000000000000003 RDI: 0000000000000000
+[223526.989567] [      C6] RBP: ffffae268026cda8 R08: 0000000000000000 R09: 0000000000000000
+[223526.989608] [      C6] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000246
+[223526.989649] [      C6] R13: ffffae26801f71d0 R14: 00000000000000fe R15: ffff93cfc2b04e0a
+[223526.989692] [      C6] FS:  0000000000000000(0000) GS:ffff93d32ed00000(0000) knlGS:0000000000000000
+[223526.989740] [      C6] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[223526.989777] [      C6] CR2: fffffffffffffff8 CR3: 0000000373a40005 CR4: 00000000003726f0
+[223526.989820] [      C6] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[223526.991528] [      C6] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[223526.993235] [      C6] Call Trace:
+[223526.994344] [      C6]  <IRQ>
+[223526.994684] [      C6]  rtw_sctx_done_err+0x3f/0x90 [8812au]
+[223526.995114] [      C6]  rtw_sctx_done+0x13/0x20 [8812au]
+[223526.995528] [      C6]  rtw_tdls_chsw_oper_done+0x30/0x50 [8812au]
+[223526.995944] [      C6]  c2h_handler+0xc9/0x1a0 [8812au]
+[223526.996368] [      C6]  rtw_hal_c2h_handler+0x6c/0x70 [8812au]
+[223526.996794] [      C6]  rtw_hal_c2h_pkt_pre_hdl+0x147/0x180 [8812au]
+[223526.997219] [      C6]  recvbuf2recvframe+0x2a8/0x2b0 [8812au]
+[223526.997666] [      C6]  usb_recv_tasklet+0x61/0x160 [8812au]
+[223526.998090] [      C6]  tasklet_action_common+0x104/0x1f0
+[223526.998424] [      C6]  tasklet_action+0x29/0x40
+[223526.998754] [      C6]  handle_softirqs+0xe4/0x340
+[223526.999087] [      C6]  __irq_exit_rcu+0x10e/0x130
+[223526.999419] [      C6]  irq_exit_rcu+0xe/0x20
+[223526.999752] [      C6]  common_interrupt+0xb6/0xe0
+[223527.000086] [      C6]  </IRQ>
+[223527.000421] [      C6]  <TASK>
+[223527.000755] [      C6]  asm_common_interrupt+0x27/0x40
+[223527.001087] [      C6] RIP: 0010:cpuidle_enter_state+0xda/0x700
+[223527.001424] [      C6] Code: 23 f5 fe e8 58 ef ff ff 8b 53 04 49 89 c7 0f 1f 44 00 00 31 ff e8 06 34 f3 fe 80 7d d0 00 0f 85 22 02 00 00 fb 0f 1f 44 00 00 <45> 85 f6 0f 88 f2 01 00 00 4d 63 ee 49 83 fd 0a 0f 83 d8 04 00 00
+[223527.001784] [      C6] RSP: 0018:ffffae2680127e00 EFLAGS: 00000246
+[223527.002144] [      C6] RAX: 0000000000000000 RBX: ffff93d32ed43688 RCX: 0000000000000000
+[223527.002510] [      C6] RDX: 0000000000000006 RSI: 0000000000000000 RDI: 0000000000000000
+[223527.002873] [      C6] RBP: ffffae2680127e50 R08: 0000000000000000 R09: 0000000000000000
+[223527.003234] [      C6] R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff9a302160
+[223527.003594] [      C6] R13: 0000000000000006 R14: 0000000000000006 R15: 0000cb4beec58dcc
+[223527.003954] [      C6]  ? tick_nohz_stop_tick+0x64/0x280
+[223527.004309] [      C6]  ? finish_task_switch.isra.0+0x9c/0x310
+[223527.004665] [      C6]  cpuidle_enter+0x2e/0x50
+[223527.005016] [      C6]  call_cpuidle+0x22/0x60
+[223527.005362] [      C6]  cpuidle_idle_call+0x119/0x190
+[223527.005712] [      C6]  do_idle+0x7f/0xe0
+[223527.006056] [      C6]  cpu_startup_entry+0x29/0x30
+[223527.006395] [      C6]  start_secondary+0x129/0x160
+[223527.006780] [      C6]  common_startup_64+0x13e/0x141
+[223527.007121] [      C6]  </TASK>
+[223527.007495] [      C6] Modules linked in: tls snd_seq_dummy snd_hrtimer cmac nls_utf8 cifs cifs_arc4 nls_ucs2_utils cifs_md4 netfs qrtr binfmt_misc intel_rapl_msr intel_rapl_common snd_soc_avs nls_iso8859_1 intel_tcc_cooling x86_pkg_temp_thermal intel_powerclamp coretemp snd_soc_hda_codec kvm_intel snd_hda_ext_core snd_soc_core snd_hda_codec_hdmi kvm snd_hda_codec_realtek irqbypass rapl intel_cstate snd_compress ac97_bus snd_pcm_dmaengine snd_hda_codec_generic snd_hda_scodec_component snd_hda_intel snd_intel_dspcfg snd_intel_sdw_acpi snd_hda_codec 8812au(OE) snd_hda_core cfg80211 snd_hwdep snd_pcm snd_seq_midi snd_seq_midi_event snd_rawmidi snd_seq ee1004 joydev input_leds mei_me mei i915 snd_seq_device intel_pmc_core snd_timer pmt_telemetry snd soundcore pmt_class i2c_i801 intel_pch_thermal intel_vsec i2c_smbus i2c_mux serio_raw mac_hid drm_buddy acpi_pad sch_fq_codel nouveau mxm_wmi drm_gpuvm gpu_sched drm_ttm_helper ttm drm_exec drm_display_helper cec rc_core i2c_algo_bit msr dm_multipath parport_pc ppdev lp parport
+[223527.007555] [      C6]  efi_pstore nfnetlink dmi_sysfs ip_tables x_tables autofs4 btrfs blake2b_generic raid10 raid456 async_raid6_recov async_memcpy async_pq async_xor async_tx xor raid6_pq raid1 raid0 linear hid_generic usbhid hid polyval_clmulni polyval_generic ghash_clmulni_intel sha256_ssse3 r8169 sha1_ssse3 psmouse intel_lpss_pci realtek ahci intel_lpss libahci idma64 video wmi pinctrl_sunrisepoint aesni_intel crypto_simd cryptd
+[223527.010355] [      C6] CR2: fffffffffffffff8

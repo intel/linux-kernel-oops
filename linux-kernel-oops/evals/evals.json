@@ -1,0 +1,87 @@
+{
+  "skill_name": "linux-kernel-oops",
+  "evals": [
+    {
+      "id": 1,
+      "name": "debian-deep-analysis",
+      "prompt": "My Debian 14 machine panicked at boot and showed a QR code. The kernel crash report is in assets/debian-oops.txt. Please give me a thorough root-cause analysis: what exactly crashed and why, how the bug could have reached that state, and where a fix should go. Also flag anything unusual you notice in the report.",
+      "expected_output": "The analysis identifies that rcu_do_batch called a NULL function pointer (RIP=0x0) stored in the rcu_head.func field of a kernfs_node object. The slab debug line is used to identify the owning object. CR2=0xffffffffffffffd6 is explained as the kernel's failed attempt to read opcode bytes 42 bytes before RIP=0. Taint W (prior WARNING) is flagged as potentially the root trigger. A What-How-Where structure is present.",
+      "files": ["assets/debian-oops.txt"],
+      "expectations": [
+        "Root cause conclusion names rcu_do_batch as the crashing function and identifies a NULL function pointer (RIP=0x0 or func=NULL) as the mechanism",
+        "The agent obtains and uses debug symbols from the Debian linux-image-*-dbg package — either by finding them pre-staged in the workspace (e.g., referencing a vmlinux path under oops-workdir/debian/ or usr/lib/debug/boot/) or by providing explicit download commands — and produces gdb or addr2line output that resolves at least one backtrace offset to a source file and line number from those symbols",
+        "Source code for rcu_do_batch (or the inlined function at the crash offset) is shown, including at least the relevant call or crash line",
+        "CR2=0xffffffffffffffd6 is explained in relation to RIP=0x0, not treated as an unrelated fault address",
+        "The slab debug line is referenced and used to connect the RDI register value to a kernfs_node object",
+        "Taint flag W (prior WARNING) is flagged as significant — the earlier WARNING may be the actual root cause",
+        "The report has a structured What / How / Where (or equivalent) analysis rather than just extraction of fields"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "fedora-deep-analysis",
+      "prompt": "My Fedora 43 laptop crashed while the iio-sensor-prox process was running. The crash report is in assets/fedora-oops.txt. Please give me a thorough root-cause analysis: what exactly faulted and why, how the driver ended up in that state, and where the fix should go. Flag anything unusual in the report.",
+      "expected_output": "The analysis identifies that bmc150_accel_set_interrupt read a NULL info pointer (crash address 0x1 = struct member at offset 1 from NULL). The root cause is that bmc150_accel_interrupts_setup was never called because the device has no IRQ, so the info pointer was never initialized. A fix is proposed. CR2=0x1 is noted as a struct member offset rather than a true NULL dereference.",
+      "files": ["assets/fedora-oops.txt"],
+      "expectations": [
+        "Root cause conclusion names bmc150_accel_set_interrupt as the crashing function and identifies a NULL or uninitialized info pointer as the mechanism",
+        "CR2=0x1 (fault address 0x1) is correctly interpreted as reading from a struct member at offset 1 of a NULL pointer, not as a NULL dereference itself",
+        "Source code for bmc150_accel_set_interrupt is shown including at least the line that dereferences the info pointer",
+        "Analysis explains that the interrupts array was never initialized because the device has no IRQ (bmc150_accel_interrupts_setup not called on the no-IRQ path)",
+        "A concrete fix suggestion is provided (e.g. NULL check for info before use, or a guard in the caller)",
+        "Taint flag W (prior WARNING) is noted",
+        "The agent demonstrates use of the kernel-debuginfo RPM debug symbols — either by running gdb against a pre-staged .ko.debug file to resolve a backtrace offset to source, or by explicitly acknowledging the RPM is available (pre-staged or downloaded from kojipkgs) and describing its contents (.ko.debug module files, no vmlinux) before falling back to source-tree analysis. Simply proceeding without any reference to the RPM or its debug files is not sufficient.",
+        "Every source code line in source-reporting sections (backtrace source mapping, crash location, related function listings) has a numeric line number prefix (or ~NNN approximation) — diff or patch blocks are exempt from this requirement",
+        "The agent identifies that this bug is already fixed upstream by commit 3aa385a9c75c09b59dcab2ff76423439d23673ab (iio: accel: bmc150: Fix irq assumption regression, by Linus Walleij) and notes that this fix was not yet present in the affected kernel version"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "testoops-warning",
+      "prompt": "I upgraded my Arch Linux system from kernel 6.14.7-arch2-1 to 6.15.1-arch1-2 and now I get this kernel warning at boot (assets/testoops.txt). It was completely fine before the upgrade. Please analyze this: classify the event, identify the source location, show me the relevant source code, and flag anything unusual in the report.",
+      "expected_output": "The event is correctly classified as a WARNING (not Oops/Panic/BUG). The source location ucsi.c:1380 is extracted directly from the WARNING header. The build ID hash in the typec_ucsi backtrace entry is correctly identified as a hash, not a second module name. OOT and unsigned module taint flags (O, E from nvidia modules) are noted. Source code for ucsi_reset_ppm is shown.",
+      "files": ["assets/testoops.txt"],
+      "expectations": [
+        "Event is classified as WARNING (WARN/WARN_ON), not as Oops, Panic, or BUG",
+        "Source location ucsi.c:1380 (or drivers/usb/typec/ucsi/ucsi.c:1380) is extracted and attributed to the ucsi_reset_ppm entry in the backtrace, without needing vmlinux",
+        "The build ID hash after typec_ucsi in the ucsi_init_work backtrace entry is correctly identified as a build hash, not a second module name",
+        "Taint flags O (out-of-tree) and E (unsigned) are noted, with nvidia identified as the source",
+        "Source code for ucsi_reset_ppm (or the WARNING call site in ucsi.c around line 1380) is shown"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "lkml-bug-filemap-fault",
+      "prompt": "I got this kernel crash report from the LKML mailing list (assets/lkml-oops.txt). It's from a Cloudflare production machine. Please give me a thorough root-cause analysis: what exactly asserted and why, how the kernel ended up in that state, and where a fix should go. Flag anything unusual in the report.",
+      "expected_output": "The analysis identifies a VM_BUG_ON_FOLIO assertion in filemap_fault (mm/filemap.c:3519) where a folio retrieved from the XFS page cache does not contain the requested page index. The root cause is a TOCTOU race: a concurrent truncation/reclaim clears folio->mapping to NULL between the truncation guard (line 3514) and the assertion (line 3519). The folio.mapping=0x0 evidence from crash tool is cited. Source code for filemap_fault showing lines 3514 and 3519 is shown. The custom Cloudflare kernel triggers use of the general source tree fallback. A defensive fix (convert VM_BUG_ON_FOLIO to retry) is proposed.",
+      "files": ["assets/lkml-oops.txt"],
+      "expectations": [
+        "Event is correctly classified as BUG/BUG_ON (specifically VM_BUG_ON_FOLIO), not as a paging request Oops or Panic",
+        "Root cause conclusion identifies a race condition (TOCTOU or concurrent truncation/reclaim) between the truncation guard at filemap_fault line 3514 and the assertion at line 3519",
+        "The analysis identifies that the folio retrieved from the page cache does not contain the requested index because of a race during large-folio splitting or truncation — not simply because folio.mapping is NULL (which is a post-crash artifact, not the cause)",
+        "Source code for filemap_fault (mm/filemap.c) is shown including both the truncation guard and the VM_BUG_ON_FOLIO assertion lines, with numeric line numbers",
+        "The custom Cloudflare kernel (no standard distro debug packages) causes the agent to use the general source tree fallback (oops-workdir/linux or equivalent) rather than distro-specific download steps",
+        "A fix is proposed: either converting VM_BUG_ON_FOLIO to a soft retry (like the truncation check above it) or hardening the truncation guard",
+        "The index mismatch (page dump shows index 0x7652 while the faulted index is 0x7653) is noted as an unusual or significant observation",
+        "The agent identifies that this bug is already fixed upstream by commit 577a1f495fd78 (mm: huge_memory: pass old_folio to xas_try_split, by Zi Yan, 2026-03-02) and notes that the fix is in __split_unmapped_folio in mm/huge_memory.c"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "ubuntu-gfs2-null-deref",
+      "prompt": "I'm running Ubuntu on a QEMU VM and stress-ng caused this kernel crash (assets/ubuntu-oops2.txt). Please give me a full root-cause analysis: what crashed and why, how the kernel ended up in that state, and where a fix should go.",
+      "expected_output": "The analysis identifies a NULL pointer dereference in gfs2_trans_add_revoke where current->journal_info (the active GFS2 transaction pointer, tr) is NULL. The fault instruction lock orb $0x2, 0x18(%rbx) writes to tr->tr_flags (offset 0x18) with RBX=0. The root cause is that do_gfs2_set_flags calls truncate_inode_pages before gfs2_trans_begin, so when journaled-data pages trigger gfs2_trans_add_revoke during page invalidation there is no open transaction. The fix should move truncate_inode_pages to after gfs2_trans_begin, or add a NULL guard in gfs2_trans_add_revoke. The agent correctly identifies this as Ubuntu from the '#14-Ubuntu' build string (not the UNAME alone), handles the missing '~XX.XX.X' version suffix by searching Launchpad to find package version 7.0.0-14.14 (series: resolute), and uses the gfs2 module debug ELF (not vmlinux) for source mapping.",
+      "files": ["assets/ubuntu-oops2.txt"],
+      "assertions": [
+        "Ubuntu is correctly identified as the distro from the '#14-Ubuntu' build string, not from the UNAME suffix alone",
+        "The agent recognises that the '#14-Ubuntu' build string has no '~XX.XX.X' part and follows the fallback procedure rather than applying the standard version formula",
+        "The faulting instruction is decoded as 'lock orb $0x2, 0x18(%rbx)' (or equivalent atomic bit-set), with RBX=0 and fault address 0x18 identified as tr->tr_flags offset in struct gfs2_trans",
+        "current->journal_info (the GFS2 transaction pointer tr) being NULL is identified as the immediate cause of the crash",
+        "The root cause identifies that do_gfs2_set_flags calls truncate_inode_pages before gfs2_trans_begin, meaning no transaction is open when gfs2_invalidate_folio triggers gfs2_trans_add_revoke",
+        "The crash is in the gfs2 loadable module and the agent uses the module debug ELF (gfs2.ko or gfs2.ko.zst decompressed) rather than vmlinux for source mapping",
+        "Source code for gfs2_trans_add_revoke (fs/gfs2/trans.c) and do_gfs2_set_flags (fs/gfs2/file.c) is shown, including the relevant lines, obtained from Ubuntu-specific source (not mainline git alone)",
+        "A fix is proposed targeting do_gfs2_set_flags in fs/gfs2/file.c — moving truncate_inode_pages to after gfs2_trans_begin, or adding a transaction-active guard before the truncation"
+      ]
+    }
+  ]
+}
