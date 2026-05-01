@@ -390,10 +390,45 @@ git -C oops-workdir/linux log --oneline \
     -- <root_cause_file>
 ```
 
+**Also check linux-next.** Even when a fix is not yet in Linus' tree it may
+already be queued in linux-next. After searching `origin/master`, repeat the
+file-history and keyword searches against `linux-next/master`:
+
+```bash
+# Keyword search in linux-next:
+git -C oops-workdir/linux log --oneline \
+    ^<uname_tag> linux-next/master \
+    --grep="<root_cause_function>"
+
+# File-history in linux-next:
+git -C oops-workdir/linux log --oneline \
+    ^<uname_tag> linux-next/master \
+    -- <root_cause_file>
+```
+
+If the `linux-next` remote is not present in the tree (check with
+`git -C oops-workdir/linux remote get-url linux-next 2>/dev/null`), add and
+fetch it before searching:
+
+```bash
+git -C oops-workdir/linux remote add linux-next \
+    https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+git -C oops-workdir/linux fetch linux-next master
+```
+
+A fix found only in linux-next (not yet in `origin/master`) should be reported
+as **"queued in linux-next"** in the Key Elements table and in the Where
+section, with the commit hash, author, date, and title. Use the linux-next
+cgit URL for hash links:
+```
+https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/?id=<full_hash>
+```
+
 **Search budget: stop after 15 git searches total** (counting each `git log`
-or `git show` call). If no credible fix has been found by then, report that
-no upstream fix was identified within the search budget and move on. Stop
-earlier if a credible fix is found — there is no need to exhaust the budget.
+or `git show` call across both remotes). If no credible fix has been found by
+then, report that no upstream fix was identified within the search budget and
+move on. Stop earlier if a credible fix is found — there is no need to exhaust
+the budget.
 If `origin/master` is not available, substitute the appropriate remote branch
 (`fedora/master`, `linus/master`, or similar — check `git remote -v`).
 

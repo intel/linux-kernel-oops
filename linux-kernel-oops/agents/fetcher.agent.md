@@ -193,6 +193,38 @@ git -C <sourcedir> checkout FETCH_HEAD
 
 Note the result (success / not found) in prefetch.md.
 
+### 7. Ensure linux-next remote is configured
+
+After the source tree is confirmed to exist, ensure the `linux-next` remote
+points to the official linux-next tree so the analyst can check whether a fix
+is already queued there.
+
+Check whether the remote already exists:
+
+```bash
+git -C <sourcedir> remote get-url linux-next 2>/dev/null
+```
+
+If it already exists and points to the correct URL, skip this step and note
+`linux-next: remote already configured` in prefetch.md.
+
+If it does not exist, add it:
+
+```bash
+git -C <sourcedir> remote add linux-next \
+    https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+```
+
+Then fetch the remote (master branch only — the full history is large):
+
+```bash
+git -C <sourcedir> fetch linux-next master
+```
+
+Note the result (`linux-next: remote added and fetched` / `linux-next: fetch
+failed`) in prefetch.md. A fetch failure is non-blocking — note it and
+continue.
+
 ### 6. Refresh semcode index
 
 Check whether the index is fresh:
@@ -271,6 +303,7 @@ Agent: fetcher
 | CLONE_REF | <path used> / none / n/a (pre-existing) | — |
 | DEBIAN_VER | <version> / not found / n/a | — |
 | DEBIAN_DBG_DEB | ready / failed / not found / insufficient disk / n/a | oops-workdir/debian/debs/<filename> |
+| LINUX_NEXT | configured / added / fetch failed / n/a | oops-workdir/linux (remote linux-next) |
 | REVIEW_PROMPTS | ready / updated / failed | oops-workdir/review-prompts/ |
 
 ## Steps log
