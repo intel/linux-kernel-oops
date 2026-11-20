@@ -23,20 +23,32 @@ def parse_oops(text):
     if version_match:
         result["version"] = version_match.group(1)
 
-    # Extract Comm, PID, CPU
-    comm_match = re.search(r"CPU: (\d+) PID: (\d+) Comm: ([\w\-/]+)", text)
+    # Extract Comm, PID, CPU, and the taint flags and version that follow them, e.g.
+    # "CPU: 1 UID: 0 PID: 727 Comm: iio-sensor-prox Tainted: G        W           6.17.7-300.fc43.x86_64 #1"
+    # (kernels before 6.12 print no "UID:" field, the comm can contain spaces and ':')
+    comm_match = re.search(
+        r"CPU: (\d+) (?:UID: \d+ )?PID: (\d+) Comm: (.+?)(?: Kdump: \S+)?"
+        r" (?:Tainted: ([A-Z](?:[A-Z ]*[A-Z])?)|Not tainted) +(\d\S*)",
+        text,
+    )
     if comm_match:
         result["cpu"] = comm_match.group(1)
         result["pid"] = comm_match.group(2)
         result["comm"] = comm_match.group(3)
+        if comm_match.group(4):
+            result["tainted"] = comm_match.group(4).strip()
+        if result["version"] is None:
+            result["version"] = comm_match.group(5)
 
-    # Extract Tainted
-    taint_match = re.search(r"Tainted: ([\w\s\(\)]+)", text)
-    if taint_match:
-        result["tainted"] = taint_match.group(1).strip()
+    # Extract Tainted when there is no CPU/Comm line to take it from
+    if not comm_match:
+        taint_match = re.search(r"Tainted: ([\w\s\(\)]+)", text)
+        if taint_match:
+            result["tainted"] = taint_match.group(1).strip()
 
-    # Extract RIP
-    rip_match = re.search(r"RIP: \d+:[<]([0-9a-fA-F]+)[>]", text)
+    # Extract RIP: "RIP: 0010:[<ffffffff81234567>]" on older kernels,
+    # "RIP: 0010:complete+0x44/0x80" on current ones
+    rip_match = re.search(r"RIP: \d+:[<]([0-9a-fA-F]+)[>]", text) or re.search(r"RIP: [0-9a-fA-F]{4}:(\S+)", text)
     if rip_match:
         result["rip"] = rip_match.group(1)
 
